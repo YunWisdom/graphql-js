@@ -14,6 +14,8 @@ import {
   isNonNullType,
 } from '../type/definition';
 
+import { coerceDefaultValue } from './coerceInputValue';
+
 /**
  * Produces a JavaScript value given a GraphQL Value AST.
  *
@@ -112,7 +114,7 @@ export function valueFromAST(
       const fieldNode = fieldNodes[field.name];
       if (!fieldNode || isMissingVariable(fieldNode.value, variables)) {
         if (field.defaultValue !== undefined) {
-          coercedObj[field.name] = field.defaultValue;
+          coercedObj[field.name] = coerceDefaultValue(field);
         } else if (isNonNullType(field.type)) {
           return; // Invalid: intentionally return no value.
         }
