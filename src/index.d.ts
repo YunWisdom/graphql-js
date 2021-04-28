@@ -415,6 +415,8 @@ export {
   visitWithTypeInfo,
   // Coerces a JavaScript value to a GraphQL type, or produces errors.
   coerceInputValue,
+  // Validate a JavaScript value with a GraphQL type, collecting all errors.
+  validateInputValue,
   // Concatenates multiple AST together.
   concatAST,
   // Separates an AST into an AST per Operation.
