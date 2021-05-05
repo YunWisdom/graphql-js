@@ -468,13 +468,19 @@ export function getNullableType(type) {
 /**
  * These named types do not include modifiers like List or NonNull.
  */
-export type GraphQLNamedType =
+export type GraphQLNamedType = GraphQLNamedInputType | GraphQLNamedOutputType;
+
+export type GraphQLNamedInputType =
+  | GraphQLScalarType
+  | GraphQLEnumType
+  | GraphQLInputObjectType;
+
+export type GraphQLNamedOutputType =
   | GraphQLScalarType
   | GraphQLObjectType
   | GraphQLInterfaceType
   | GraphQLUnionType
-  | GraphQLEnumType
-  | GraphQLInputObjectType;
+  | GraphQLEnumType;
 
 export function isNamedType(type: mixed): boolean %checks {
   return (
@@ -496,6 +502,8 @@ export function assertNamedType(type: mixed): GraphQLNamedType {
 
 /* eslint-disable no-redeclare */
 declare function getNamedType(type: void | null): void;
+declare function getNamedType(type: GraphQLInputType): GraphQLNamedInputType;
+declare function getNamedType(type: GraphQLOutputType): GraphQLNamedOutputType;
 declare function getNamedType(type: GraphQLType): GraphQLNamedType;
 export function getNamedType(type) {
   /* eslint-enable no-redeclare */
@@ -554,6 +562,7 @@ export class GraphQLScalarType {
   serialize: GraphQLScalarSerializer<mixed>;
   parseValue: GraphQLScalarValueParser<mixed>;
   parseLiteral: GraphQLScalarLiteralParser<mixed>;
+  valueToLiteral: ?GraphQLScalarValueToLiteral;
   extensions: ?ReadOnlyObjMap<mixed>;
   astNode: ?ScalarTypeDefinitionNode;
   extensionASTNodes: $ReadOnlyArray<ScalarTypeExtensionNode>;
@@ -568,6 +577,7 @@ export class GraphQLScalarType {
     this.parseLiteral =
       config.parseLiteral ??
       ((node, variables) => parseValue(valueFromASTUntyped(node, variables)));
+    this.valueToLiteral = config.valueToLiteral;
     this.extensions = config.extensions && toObjMap(config.extensions);
     this.astNode = config.astNode;
     this.extensionASTNodes = config.extensionASTNodes ?? [];
@@ -603,6 +613,7 @@ export class GraphQLScalarType {
       serialize: this.serialize,
       parseValue: this.parseValue,
       parseLiteral: this.parseLiteral,
+      valueToLiteral: this.valueToLiteral,
       extensions: this.extensions,
       astNode: this.astNode,
       extensionASTNodes: this.extensionASTNodes,
@@ -636,6 +647,8 @@ export type GraphQLScalarLiteralParser<TInternal> = (
   variables: ?ObjMap<mixed>,
 ) => ?TInternal;
 
+export type GraphQLScalarValueToLiteral = (inputValue: mixed) => ?ValueNode;
+
 export type GraphQLScalarTypeConfig<TInternal, TExternal> = {|
   name: string,
   description?: ?string,
@@ -646,6 +659,8 @@ export type GraphQLScalarTypeConfig<TInternal, TExternal> = {|
   parseValue?: GraphQLScalarValueParser<TInternal>,
   // Parses an externally provided literal value to use as an input.
   parseLiteral?: GraphQLScalarLiteralParser<TInternal>,
+  // Translates an external input value to an external literal (AST).
+  valueToLiteral?: ?GraphQLScalarValueToLiteral,
   extensions?: ?ReadOnlyObjMapLike<mixed>,
   astNode?: ?ScalarTypeDefinitionNode,
   extensionASTNodes?: ?$ReadOnlyArray<ScalarTypeExtensionNode>,
@@ -1337,6 +1352,16 @@ export class GraphQLEnumType /* <T> */ {
       );
     }
     return enumValue.value;
+  }
+
+  valueToLiteral(value: mixed): ?ValueNode {
+    if (typeof value === 'string') {
+      // https://spec.graphql.org/draft/#Name
+      if (/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(value)) {
+        return { kind: Kind.ENUM, value };
+      }
+      return { kind: Kind.STRING, value };
+    }
   }
 
   toConfig(): GraphQLEnumTypeNormalizedConfig {

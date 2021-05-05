@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-export function expectWarning(callback: () => void): void {
+export function expectWarning(callback: () => any): any {
   const _console = console;
   try {
     let warnCallArg;
