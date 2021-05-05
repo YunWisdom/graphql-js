@@ -404,6 +404,7 @@ export {
   // Create a GraphQLType from a GraphQL language AST.
   typeFromAST,
   // Create a JavaScript value from a GraphQL language AST with a Type.
+  // DEPRECATED: use coerceInputLiteral
   valueFromAST,
   // Create a JavaScript value from a GraphQL language AST without a Type.
   valueFromASTUntyped,
@@ -413,7 +414,9 @@ export {
   // the GraphQL type system.
   TypeInfo,
   visitWithTypeInfo,
-  // Coerces a JavaScript value to a GraphQL type, or produces errors.
+  // Coerces a GraphQL Literal with a GraphQL type.
+  coerceInputLiteral,
+  // Coerces a JavaScript value with a GraphQL type, or produces errors.
   coerceInputValue,
   // Validate a JavaScript value with a GraphQL type, collecting all errors.
   validateInputValue,
