@@ -15,15 +15,21 @@ import {
   SelectionNode,
   FieldNode,
   ArgumentNode,
+  ConstArgumentNode,
   FragmentSpreadNode,
   InlineFragmentNode,
   FragmentDefinitionNode,
   ValueNode,
+  ConstValueNode,
   StringValueNode,
   ListValueNode,
+  ConstListValueNode,
   ObjectValueNode,
+  ConstObjectValueNode,
   ObjectFieldNode,
+  ConstObjectFieldNode,
   DirectiveNode,
+  ConstDirectiveNode,
   TypeNode,
   NamedTypeNode,
   TypeSystemDefinitionNode,
@@ -99,6 +105,15 @@ export function parseValue(
   source: string | Source,
   options?: ParseOptions,
 ): ValueNode;
+
+/**
+ * Similar to parseValue(), but raises a parse error if it encounters a
+ * variable. The return type will be a constant value.
+ */
+export function parseConstValue(
+  source: string | Source,
+  options?: ParseOptions,
+): ConstValueNode;
 
 /**
  * Given a string containing a GraphQL Type (ex. `[Int!]`), parse the AST for
@@ -204,14 +219,14 @@ export declare class Parser {
   /**
    * Arguments[Const] : ( Argument[?Const]+ )
    */
+  parseArguments(isConst: true): Array<ConstArgumentNode>;
   parseArguments(isConst: boolean): Array<ArgumentNode>;
 
   /**
    * Argument[Const] : Name : Value[?Const]
    */
-  parseArgument(): ArgumentNode;
-
-  parseConstArgument(): ArgumentNode;
+  parseArgument(isConst: true): ConstArgumentNode;
+  parseArgument(isConst: boolean): ArgumentNode;
 
   /**
    * Corresponds to both FragmentSpread and InlineFragment in the spec.
@@ -253,6 +268,7 @@ export declare class Parser {
    *
    * EnumValue : Name but not `true`, `false` or `null`
    */
+  parseValueLiteral(isConst: true): ConstValueNode;
   parseValueLiteral(isConst: boolean): ValueNode;
 
   parseStringLiteral(): StringValueNode;
@@ -262,6 +278,7 @@ export declare class Parser {
    *   - [ ]
    *   - [ Value[?Const]+ ]
    */
+  parseList(isConst: true): ConstListValueNode;
   parseList(isConst: boolean): ListValueNode;
 
   /**
@@ -269,21 +286,25 @@ export declare class Parser {
    *   - { }
    *   - { ObjectField[?Const]+ }
    */
+  parseObject(isConst: true): ConstObjectValueNode;
   parseObject(isConst: boolean): ObjectValueNode;
 
   /**
    * ObjectField[Const] : Name : Value[?Const]
    */
+  parseObjectField(isConst: true): ConstObjectFieldNode;
   parseObjectField(isConst: boolean): ObjectFieldNode;
 
   /**
    * Directives[Const] : Directive[?Const]+
    */
+  parseDirectives(isConst: true): Array<ConstDirectiveNode>;
   parseDirectives(isConst: boolean): Array<DirectiveNode>;
 
   /**
    * Directive[Const] : @ Name Arguments[?Const]?
    */
+  parseDirective(isConst: true): ConstDirectiveNode;
   parseDirective(isConst: boolean): DirectiveNode;
 
   /**

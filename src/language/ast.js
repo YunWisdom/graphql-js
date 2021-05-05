@@ -149,9 +149,9 @@ export type ASTNode =
   | BooleanValueNode
   | NullValueNode
   | EnumValueNode
-  | ListValueNode
-  | ObjectValueNode
-  | ObjectFieldNode
+  | ListValueNode<>
+  | ObjectValueNode<>
+  | ObjectFieldNode<>
   | DirectiveNode
   | NamedTypeNode
   | ListTypeNode
@@ -197,9 +197,9 @@ export type ASTKindToNode = {|
   BooleanValue: BooleanValueNode,
   NullValue: NullValueNode,
   EnumValue: EnumValueNode,
-  ListValue: ListValueNode,
-  ObjectValue: ObjectValueNode,
-  ObjectField: ObjectFieldNode,
+  ListValue: ListValueNode<>,
+  ObjectValue: ObjectValueNode<>,
+  ObjectField: ObjectFieldNode<>,
   Directive: DirectiveNode,
   NamedType: NamedTypeNode,
   ListType: ListTypeNode,
@@ -267,8 +267,8 @@ export type VariableDefinitionNode = {|
   +loc?: Location,
   +variable: VariableNode,
   +type: TypeNode,
-  +defaultValue?: ValueNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +defaultValue?: ConstValueNode,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
 |};
 
 export type VariableNode = {|
@@ -300,6 +300,13 @@ export type ArgumentNode = {|
   +loc?: Location,
   +name: NameNode,
   +value: ValueNode,
+|};
+
+export type ConstArgumentNode = {|
+  +kind: 'Argument',
+  +loc?: Location,
+  +name: NameNode,
+  +value: ConstValueNode,
 |};
 
 // Fragments
@@ -340,8 +347,18 @@ export type ValueNode =
   | BooleanValueNode
   | NullValueNode
   | EnumValueNode
-  | ListValueNode
-  | ObjectValueNode;
+  | ListValueNode<>
+  | ObjectValueNode<>;
+
+export type ConstValueNode =
+  | IntValueNode
+  | FloatValueNode
+  | StringValueNode
+  | BooleanValueNode
+  | NullValueNode
+  | EnumValueNode
+  | ConstListValueNode
+  | ConstObjectValueNode;
 
 export type IntValueNode = {|
   +kind: 'IntValue',
@@ -379,23 +396,26 @@ export type EnumValueNode = {|
   +value: string,
 |};
 
-export type ListValueNode = {|
+export type ConstListValueNode = ListValueNode<ConstValueNode>;
+export type ListValueNode<+V = ValueNode> = {|
   +kind: 'ListValue',
   +loc?: Location,
-  +values: $ReadOnlyArray<ValueNode>,
+  +values: $ReadOnlyArray<V>,
 |};
 
-export type ObjectValueNode = {|
+export type ConstObjectValueNode = ObjectValueNode<ConstValueNode>;
+export type ObjectValueNode<+V = ValueNode> = {|
   +kind: 'ObjectValue',
   +loc?: Location,
-  +fields: $ReadOnlyArray<ObjectFieldNode>,
+  +fields: $ReadOnlyArray<ObjectFieldNode<V>>,
 |};
 
-export type ObjectFieldNode = {|
+export type ConstObjectFieldNode = ObjectFieldNode<ConstValueNode>;
+export type ObjectFieldNode<+V = ValueNode> = {|
   +kind: 'ObjectField',
   +loc?: Location,
   +name: NameNode,
-  +value: ValueNode,
+  +value: V,
 |};
 
 // Directives
@@ -405,6 +425,13 @@ export type DirectiveNode = {|
   +loc?: Location,
   +name: NameNode,
   +arguments?: $ReadOnlyArray<ArgumentNode>,
+|};
+
+export type ConstDirectiveNode = {|
+  +kind: 'Directive',
+  +loc?: Location,
+  +name: NameNode,
+  +arguments?: $ReadOnlyArray<ConstArgumentNode>,
 |};
 
 // Type Reference
@@ -440,7 +467,7 @@ export type SchemaDefinitionNode = {|
   +kind: 'SchemaDefinition',
   +loc?: Location,
   +description?: StringValueNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +operationTypes: $ReadOnlyArray<OperationTypeDefinitionNode>,
 |};
 
@@ -466,7 +493,7 @@ export type ScalarTypeDefinitionNode = {|
   +loc?: Location,
   +description?: StringValueNode,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
 |};
 
 export type ObjectTypeDefinitionNode = {|
@@ -475,7 +502,7 @@ export type ObjectTypeDefinitionNode = {|
   +description?: StringValueNode,
   +name: NameNode,
   +interfaces?: $ReadOnlyArray<NamedTypeNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +fields?: $ReadOnlyArray<FieldDefinitionNode>,
 |};
 
@@ -486,7 +513,7 @@ export type FieldDefinitionNode = {|
   +name: NameNode,
   +arguments?: $ReadOnlyArray<InputValueDefinitionNode>,
   +type: TypeNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
 |};
 
 export type InputValueDefinitionNode = {|
@@ -495,8 +522,8 @@ export type InputValueDefinitionNode = {|
   +description?: StringValueNode,
   +name: NameNode,
   +type: TypeNode,
-  +defaultValue?: ValueNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +defaultValue?: ConstValueNode,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
 |};
 
 export type InterfaceTypeDefinitionNode = {|
@@ -505,7 +532,7 @@ export type InterfaceTypeDefinitionNode = {|
   +description?: StringValueNode,
   +name: NameNode,
   +interfaces?: $ReadOnlyArray<NamedTypeNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +fields?: $ReadOnlyArray<FieldDefinitionNode>,
 |};
 
@@ -514,7 +541,7 @@ export type UnionTypeDefinitionNode = {|
   +loc?: Location,
   +description?: StringValueNode,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +types?: $ReadOnlyArray<NamedTypeNode>,
 |};
 
@@ -523,7 +550,7 @@ export type EnumTypeDefinitionNode = {|
   +loc?: Location,
   +description?: StringValueNode,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +values?: $ReadOnlyArray<EnumValueDefinitionNode>,
 |};
 
@@ -532,7 +559,7 @@ export type EnumValueDefinitionNode = {|
   +loc?: Location,
   +description?: StringValueNode,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
 |};
 
 export type InputObjectTypeDefinitionNode = {|
@@ -540,7 +567,7 @@ export type InputObjectTypeDefinitionNode = {|
   +loc?: Location,
   +description?: StringValueNode,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +fields?: $ReadOnlyArray<InputValueDefinitionNode>,
 |};
 
@@ -563,7 +590,7 @@ export type TypeSystemExtensionNode = SchemaExtensionNode | TypeExtensionNode;
 export type SchemaExtensionNode = {|
   +kind: 'SchemaExtension',
   +loc?: Location,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +operationTypes?: $ReadOnlyArray<OperationTypeDefinitionNode>,
 |};
 
@@ -581,7 +608,7 @@ export type ScalarTypeExtensionNode = {|
   +kind: 'ScalarTypeExtension',
   +loc?: Location,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
 |};
 
 export type ObjectTypeExtensionNode = {|
@@ -589,7 +616,7 @@ export type ObjectTypeExtensionNode = {|
   +loc?: Location,
   +name: NameNode,
   +interfaces?: $ReadOnlyArray<NamedTypeNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +fields?: $ReadOnlyArray<FieldDefinitionNode>,
 |};
 
@@ -598,7 +625,7 @@ export type InterfaceTypeExtensionNode = {|
   +loc?: Location,
   +name: NameNode,
   +interfaces?: $ReadOnlyArray<NamedTypeNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +fields?: $ReadOnlyArray<FieldDefinitionNode>,
 |};
 
@@ -606,7 +633,7 @@ export type UnionTypeExtensionNode = {|
   +kind: 'UnionTypeExtension',
   +loc?: Location,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +types?: $ReadOnlyArray<NamedTypeNode>,
 |};
 
@@ -614,7 +641,7 @@ export type EnumTypeExtensionNode = {|
   +kind: 'EnumTypeExtension',
   +loc?: Location,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +values?: $ReadOnlyArray<EnumValueDefinitionNode>,
 |};
 
@@ -622,6 +649,6 @@ export type InputObjectTypeExtensionNode = {|
   +kind: 'InputObjectTypeExtension',
   +loc?: Location,
   +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
+  +directives?: $ReadOnlyArray<ConstDirectiveNode>,
   +fields?: $ReadOnlyArray<InputValueDefinitionNode>,
 |};
