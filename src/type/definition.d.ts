@@ -23,6 +23,7 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   ValueNode,
+  ConstValueNode,
   ScalarTypeExtensionNode,
   UnionTypeExtensionNode,
   EnumTypeExtensionNode,
@@ -316,6 +317,7 @@ export class GraphQLScalarType {
   serialize: GraphQLScalarSerializer<unknown>;
   parseValue: GraphQLScalarValueParser<unknown>;
   parseLiteral: GraphQLScalarLiteralParser<unknown>;
+  valueToLiteral: Maybe<GraphQLScalarValueToLiteral>;
   extensions: Maybe<Readonly<GraphQLScalarTypeExtensions>>;
   astNode: Maybe<ScalarTypeDefinitionNode>;
   extensionASTNodes: ReadonlyArray<ScalarTypeExtensionNode>;
@@ -327,6 +329,7 @@ export class GraphQLScalarType {
     serialize: GraphQLScalarSerializer<unknown>;
     parseValue: GraphQLScalarValueParser<unknown>;
     parseLiteral: GraphQLScalarLiteralParser<unknown>;
+    valueToLiteral: Maybe<GraphQLScalarValueToLiteral>;
     extensions: Maybe<Readonly<GraphQLScalarTypeExtensions>>;
     extensionASTNodes: ReadonlyArray<ScalarTypeExtensionNode>;
   };
@@ -347,6 +350,10 @@ export type GraphQLScalarLiteralParser<TInternal> = (
   variables: Maybe<ObjMap<unknown>>,
 ) => Maybe<TInternal>;
 
+export type GraphQLScalarValueToLiteral = (
+  inputValue: unknown,
+) => Maybe<ConstValueNode>;
+
 export interface GraphQLScalarTypeConfig<TInternal, TExternal> {
   name: string;
   description?: Maybe<string>;
@@ -357,6 +364,8 @@ export interface GraphQLScalarTypeConfig<TInternal, TExternal> {
   parseValue?: GraphQLScalarValueParser<TInternal>;
   // Parses an externally provided literal value to use as an input.
   parseLiteral?: GraphQLScalarLiteralParser<TInternal>;
+  // Translates an external input value to an external literal (AST).
+  valueToLiteral?: Maybe<GraphQLScalarValueToLiteral>;
   extensions?: Maybe<Readonly<GraphQLScalarTypeExtensions>>;
   astNode?: Maybe<ScalarTypeDefinitionNode>;
   extensionASTNodes?: Maybe<ReadonlyArray<ScalarTypeExtensionNode>>;
@@ -786,6 +795,7 @@ export class GraphQLEnumType {
     valueNode: ValueNode,
     _variables: Maybe<ObjMap<unknown>>,
   ): Maybe<any>;
+  valueToLiteral(value: unknown): Maybe<ConstValueNode>;
 
   toConfig(): GraphQLEnumTypeConfig & {
     extensions: Maybe<Readonly<GraphQLEnumTypeExtensions>>;

@@ -1,4 +1,4 @@
-import { ValueNode } from '../language/ast';
+import { ConstValueNode } from '../language/ast';
 import { GraphQLInputType } from '../type/definition';
 
 /**
@@ -25,4 +25,4 @@ import { GraphQLInputType } from '../type/definition';
 export function valueToLiteral(
   value: unknown,
   type?: GraphQLInputType,
-): ValueNode;
+): ConstValueNode;

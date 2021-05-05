@@ -1,7 +1,7 @@
 import { inspect } from '../jsutils/inspect';
 import { isIterableObject } from '../jsutils/isIterableObject';
 
-import type { ValueNode } from '../language/ast';
+import type { ConstValueNode } from '../language/ast';
 import { Kind } from '../language/kinds';
 
 import type { GraphQLInputType } from '../type/definition';
@@ -35,7 +35,7 @@ import {
 export function valueToLiteral(
   value: mixed,
   type?: GraphQLInputType,
-): ValueNode {
+): ConstValueNode {
   // Like JSON, a null literal is produced for null and undefined.
   if (value == null) {
     return { kind: Kind.NULL };

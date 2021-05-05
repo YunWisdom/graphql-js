@@ -42,6 +42,7 @@ import type {
   FieldNode,
   FragmentDefinitionNode,
   ValueNode,
+  ConstValueNode,
 } from '../language/ast';
 
 import { valueFromASTUntyped } from '../utilities/valueFromASTUntyped';
@@ -647,7 +648,9 @@ export type GraphQLScalarLiteralParser<TInternal> = (
   variables: ?ObjMap<mixed>,
 ) => ?TInternal;
 
-export type GraphQLScalarValueToLiteral = (inputValue: mixed) => ?ValueNode;
+export type GraphQLScalarValueToLiteral = (
+  inputValue: mixed,
+) => ?ConstValueNode;
 
 export type GraphQLScalarTypeConfig<TInternal, TExternal> = {|
   name: string,
@@ -846,10 +849,7 @@ export function defineArguments(
     name: argName,
     description: argConfig.description,
     type: argConfig.type,
-    defaultValue: uncoerceDefaultValue(
-      argConfig.defaultValue,
-      argConfig.type,
-    ),
+    defaultValue: uncoerceDefaultValue(argConfig.defaultValue, argConfig.type),
     deprecationReason: argConfig.deprecationReason,
     extensions: argConfig.extensions && toObjMap(argConfig.extensions),
     astNode: argConfig.astNode,
@@ -1354,7 +1354,7 @@ export class GraphQLEnumType /* <T> */ {
     return enumValue.value;
   }
 
-  valueToLiteral(value: mixed): ?ValueNode {
+  valueToLiteral(value: mixed): ?ConstValueNode {
     if (typeof value === 'string') {
       // https://spec.graphql.org/draft/#Name
       if (/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(value)) {
